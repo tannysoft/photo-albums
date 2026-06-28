@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicPhoto } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
-const ROW_HEIGHT = 160; // target row height (px); lower = more photos per row
 
 /** Aspect ratio (w/h) with a safe square fallback. */
 function aspectRatio(p: PublicPhoto): number {
@@ -215,7 +214,7 @@ export default function Gallery({
         <>
         <div
           onPointerMove={onGridPointerMove}
-          className="flex flex-wrap gap-1.5 sm:gap-2"
+          className="flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:150px] lg:[--row-h:190px]"
         >
           {photos.slice(0, visibleCount).map((p) => {
             const isSel = selected.has(p.id);
@@ -226,7 +225,7 @@ export default function Gallery({
                 data-photo-id={p.id}
                 onClick={() => onTileClick(p)}
                 onPointerDown={(e) => onTilePointerDown(e, p)}
-                style={{ flexGrow: ar, flexBasis: `${ar * ROW_HEIGHT}px` }}
+                style={{ flexGrow: ar, flexBasis: `calc(${ar} * var(--row-h))` }}
                 className="group relative overflow-hidden rounded-lg bg-neutral-900 focus:outline-none"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

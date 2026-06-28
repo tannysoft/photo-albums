@@ -8,7 +8,6 @@ import { imgUrl } from "@/lib/imgUrl";
 import type { Album, Photo } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
-const ROW_HEIGHT = 160; // target row height (px); lower = more photos per row
 
 export default function AlbumDetailPage() {
   const { user, loading } = useAuth();
@@ -203,13 +202,13 @@ export default function AlbumDetailPage() {
         <p className="mt-10 text-neutral-500">ยังไม่มีรูปในอัลบั้มนี้</p>
       ) : (
         <>
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:150px] lg:[--row-h:190px]">
           {photos.slice(0, visibleCount).map((p) => {
             const ar = p.width && p.height ? p.width / p.height : 1;
             return (
             <div
               key={p.id}
-              style={{ flexGrow: ar, flexBasis: `${ar * ROW_HEIGHT}px` }}
+              style={{ flexGrow: ar, flexBasis: `calc(${ar} * var(--row-h))` }}
               className="group relative overflow-hidden rounded-lg bg-neutral-900"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
