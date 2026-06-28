@@ -7,6 +7,8 @@ import { apiFetch, useAuth } from "@/lib/useAuth";
 import { imgUrl } from "@/lib/imgUrl";
 import type { Album, Photo } from "@/lib/types";
 
+const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
+
 export default function AlbumDetailPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -20,7 +22,9 @@ export default function AlbumDetailPage() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const fileInput = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/admin/login");
@@ -48,6 +52,22 @@ export default function AlbumDetailPage() {
     if (album) setShareUrl(`${window.location.origin}/a/${album.slug}`);
   }, [album]);
 
+  // Infinite scroll: reveal the next batch as the sentinel nears the viewport.
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, photos.length));
+        }
+      },
+      { rootMargin: "800px" }
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [photos.length, visibleCount]);
+
   async function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
@@ -63,6 +83,7 @@ export default function AlbumDetailPage() {
         if (res.ok) {
           const { photo } = await res.json();
           setPhotos((prev) => [...prev, photo]);
+          setVisibleCount((c) => c + 1); // keep new uploads visible
         }
       } catch {
         /* keep going on individual failures */
@@ -176,8 +197,9 @@ export default function AlbumDetailPage() {
       {photos.length === 0 ? (
         <p className="mt-10 text-neutral-500">ยังไม่มีรูปในอัลบั้มนี้</p>
       ) : (
+        <>
         <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {photos.map((p) => (
+          {photos.slice(0, visibleCount).map((p) => (
             <div
               key={p.id}
               className="group relative aspect-square overflow-hidden rounded-lg bg-neutral-900"
@@ -198,6 +220,17 @@ export default function AlbumDetailPage() {
             </div>
           ))}
         </div>
+
+        {/* Infinite-scroll sentinel + progress */}
+        {visibleCount < photos.length && (
+          <div
+            ref={sentinelRef}
+            className="flex items-center justify-center py-8 text-sm text-neutral-500"
+          >
+            กำลังโหลดเพิ่ม… ({visibleCount}/{photos.length})
+          </div>
+        )}
+        </>
       )}
     </main>
   );
