@@ -4,6 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicPhoto } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
+const ROW_HEIGHT = 220; // target row height (px) for the justified layout
+
+/** Aspect ratio (w/h) with a safe square fallback. */
+function aspectRatio(p: PublicPhoto): number {
+  return p.width && p.height ? p.width / p.height : 1;
+}
 
 export default function Gallery({
   slug,
@@ -209,17 +215,19 @@ export default function Gallery({
         <>
         <div
           onPointerMove={onGridPointerMove}
-          className="columns-2 gap-1.5 sm:columns-3 sm:gap-2 md:columns-4"
+          className="flex flex-wrap gap-1.5 sm:gap-2"
         >
           {photos.slice(0, visibleCount).map((p) => {
             const isSel = selected.has(p.id);
+            const ar = aspectRatio(p);
             return (
               <button
                 key={p.id}
                 data-photo-id={p.id}
                 onClick={() => onTileClick(p)}
                 onPointerDown={(e) => onTilePointerDown(e, p)}
-                className="group relative mb-1.5 block w-full break-inside-avoid overflow-hidden rounded-lg bg-neutral-900 focus:outline-none sm:mb-2"
+                style={{ flexGrow: ar, flexBasis: `${ar * ROW_HEIGHT}px` }}
+                className="group relative overflow-hidden rounded-lg bg-neutral-900 focus:outline-none"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -229,7 +237,7 @@ export default function Gallery({
                   draggable={false}
                   width={p.width}
                   height={p.height}
-                  className={`h-auto w-full transition ${
+                  className={`block h-auto w-full transition ${
                     isSel ? "brightness-75" : ""
                   }`}
                 />
@@ -247,6 +255,8 @@ export default function Gallery({
               </button>
             );
           })}
+          {/* Absorbs leftover space so the last row keeps natural sizes. */}
+          <span aria-hidden style={{ flexGrow: 999, flexBasis: 0 }} />
         </div>
 
         {/* Infinite-scroll sentinel + progress */}

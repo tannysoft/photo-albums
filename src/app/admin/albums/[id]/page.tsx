@@ -8,6 +8,7 @@ import { imgUrl } from "@/lib/imgUrl";
 import type { Album, Photo } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
+const ROW_HEIGHT = 220; // target row height (px) for the justified layout
 
 export default function AlbumDetailPage() {
   const { user, loading } = useAuth();
@@ -202,11 +203,14 @@ export default function AlbumDetailPage() {
         <p className="mt-10 text-neutral-500">ยังไม่มีรูปในอัลบั้มนี้</p>
       ) : (
         <>
-        <div className="mt-6 columns-2 gap-2 sm:columns-3 lg:columns-4">
-          {photos.slice(0, visibleCount).map((p) => (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {photos.slice(0, visibleCount).map((p) => {
+            const ar = p.width && p.height ? p.width / p.height : 1;
+            return (
             <div
               key={p.id}
-              className="group relative mb-2 break-inside-avoid overflow-hidden rounded-lg bg-neutral-900"
+              style={{ flexGrow: ar, flexBasis: `${ar * ROW_HEIGHT}px` }}
+              className="group relative overflow-hidden rounded-lg bg-neutral-900"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -215,7 +219,7 @@ export default function AlbumDetailPage() {
                 loading="lazy"
                 width={p.width}
                 height={p.height}
-                className="h-auto w-full"
+                className="block h-auto w-full"
               />
               <button
                 onClick={() => deletePhoto(p.id)}
@@ -243,7 +247,10 @@ export default function AlbumDetailPage() {
                 {p.downloadCount ?? 0}
               </span>
             </div>
-          ))}
+            );
+          })}
+          {/* Absorbs leftover space so the last row keeps natural sizes. */}
+          <span aria-hidden style={{ flexGrow: 999, flexBasis: 0 }} />
         </div>
 
         {/* Infinite-scroll sentinel + progress */}
