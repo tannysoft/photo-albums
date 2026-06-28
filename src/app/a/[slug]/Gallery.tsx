@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicPhoto } from "@/lib/types";
 
+const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
+
 export default function Gallery({
   slug,
   title,
@@ -19,6 +21,8 @@ export default function Gallery({
   const [downloading, setDownloading] = useState(false);
   const [downloadingOne, setDownloadingOne] = useState(false);
   const [lightbox, setLightbox] = useState<PublicPhoto | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ mode: "add" | "remove"; moved: boolean } | null>(
     null
   );
@@ -44,6 +48,22 @@ export default function Gallery({
       return next;
     });
   }, []);
+
+  // Infinite scroll: load the next batch when the sentinel nears the viewport.
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, photos.length));
+        }
+      },
+      { rootMargin: "800px" }
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [photos.length, visibleCount]);
 
   // End any in-progress drag selection globally.
   useEffect(() => {
@@ -186,11 +206,12 @@ export default function Gallery({
           ยังไม่มีรูปในอัลบั้มนี้
         </p>
       ) : (
+        <>
         <div
           onPointerMove={onGridPointerMove}
           className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-6"
         >
-          {photos.map((p) => {
+          {photos.slice(0, visibleCount).map((p) => {
             const isSel = selected.has(p.id);
             return (
               <button
@@ -225,6 +246,17 @@ export default function Gallery({
             );
           })}
         </div>
+
+        {/* Infinite-scroll sentinel + progress */}
+        {visibleCount < photos.length && (
+          <div
+            ref={sentinelRef}
+            className="flex items-center justify-center py-8 text-sm text-neutral-500"
+          >
+            กำลังโหลดเพิ่ม… ({visibleCount}/{photos.length})
+          </div>
+        )}
+        </>
       )}
 
       {/* Bottom action bar */}
