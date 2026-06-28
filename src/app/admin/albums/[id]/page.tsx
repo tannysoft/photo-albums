@@ -202,7 +202,7 @@ export default function AlbumDetailPage() {
         <p className="mt-10 text-neutral-500">ยังไม่มีรูปในอัลบั้มนี้</p>
       ) : (
         <>
-        <div className="mt-6 flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:150px] lg:[--row-h:190px]">
+        <div className="mt-6 flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:130px] lg:[--row-h:150px]">
           {photos.slice(0, visibleCount).map((p) => {
             const ar = p.width && p.height ? p.width / p.height : 1;
             return (

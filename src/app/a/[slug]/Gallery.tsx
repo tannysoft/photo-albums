@@ -214,7 +214,7 @@ export default function Gallery({
         <>
         <div
           onPointerMove={onGridPointerMove}
-          className="flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:150px] lg:[--row-h:190px]"
+          className="flex flex-wrap gap-1.5 [--row-h:76px] sm:gap-2 sm:[--row-h:130px] lg:[--row-h:150px]"
         >
           {photos.slice(0, visibleCount).map((p) => {
             const isSel = selected.has(p.id);
