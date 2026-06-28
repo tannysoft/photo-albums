@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Use Google Sans as the primary UI font. It has no Thai glyphs, so Thai text
+   falls back to Noto Sans Thai / the system Thai font. */
+@theme {
+  --font-sans: "Google Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Thai", "Sarabun",
+    sans-serif;
+}
+
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
@@ -9,7 +17,11 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+  /* Site-wide antialiasing */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 * {
