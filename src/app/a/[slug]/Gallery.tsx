@@ -17,6 +17,7 @@ export default function Gallery({
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState(false);
+  const [downloadingOne, setDownloadingOne] = useState(false);
   const [lightbox, setLightbox] = useState<PublicPhoto | null>(null);
   const dragRef = useRef<{ mode: "add" | "remove"; moved: boolean } | null>(
     null
@@ -131,6 +132,26 @@ export default function Gallery({
     }
   }
 
+  // Download the single photo currently shown in the lightbox.
+  async function downloadOne(photo: PublicPhoto) {
+    if (downloadingOne) return;
+    setDownloadingOne(true);
+    try {
+      const res = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, photoIds: [photo.id] }),
+      });
+      if (!res.ok) throw new Error("download failed");
+      const { url } = await res.json();
+      triggerDownload(url, photo.fileName);
+    } catch {
+      alert("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setDownloadingOne(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6">
       <header className="mb-5 flex items-start justify-between gap-4">
@@ -234,17 +255,54 @@ export default function Gallery({
           <img
             src={lightbox.url}
             alt={lightbox.fileName}
+            onClick={(e) => e.stopPropagation()}
             className="max-h-full max-w-full rounded-lg object-contain"
           />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightbox(null);
-            }}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xl text-white"
-          >
-            ✕
-          </button>
+
+          {/* Top bar: close + download */}
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox(null);
+              }}
+              aria-label="ปิด"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xl text-white backdrop-blur transition hover:bg-white/20"
+            >
+              ✕
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadOne(lightbox);
+              }}
+              disabled={downloadingOne}
+              className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-neutral-200 disabled:opacity-50"
+            >
+              {downloadingOne ? (
+                "กำลังเตรียมไฟล์…"
+              ) : (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  ดาวน์โหลด
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </main>
