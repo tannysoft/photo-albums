@@ -209,7 +209,7 @@ export default function Gallery({
         <>
         <div
           onPointerMove={onGridPointerMove}
-          className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-6"
+          className="columns-2 gap-1.5 sm:columns-3 sm:gap-2 md:columns-4"
         >
           {photos.slice(0, visibleCount).map((p) => {
             const isSel = selected.has(p.id);
@@ -219,7 +219,7 @@ export default function Gallery({
                 data-photo-id={p.id}
                 onClick={() => onTileClick(p)}
                 onPointerDown={(e) => onTilePointerDown(e, p)}
-                className="group relative aspect-square overflow-hidden rounded-lg bg-neutral-900 focus:outline-none"
+                className="group relative mb-1.5 block w-full break-inside-avoid overflow-hidden rounded-lg bg-neutral-900 focus:outline-none sm:mb-2"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -227,8 +227,10 @@ export default function Gallery({
                   alt={p.fileName}
                   loading="lazy"
                   draggable={false}
-                  className={`h-full w-full object-cover transition ${
-                    isSel ? "scale-95 brightness-75" : ""
+                  width={p.width}
+                  height={p.height}
+                  className={`h-auto w-full transition ${
+                    isSel ? "brightness-75" : ""
                   }`}
                 />
                 {selectMode && (

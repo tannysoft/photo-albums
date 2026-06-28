@@ -202,18 +202,20 @@ export default function AlbumDetailPage() {
         <p className="mt-10 text-neutral-500">ยังไม่มีรูปในอัลบั้มนี้</p>
       ) : (
         <>
-        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-6 columns-2 gap-2 sm:columns-3 lg:columns-4">
           {photos.slice(0, visibleCount).map((p) => (
             <div
               key={p.id}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-neutral-900"
+              className="group relative mb-2 break-inside-avoid overflow-hidden rounded-lg bg-neutral-900"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imgUrl(p.thumbKey)}
                 alt={p.fileName}
                 loading="lazy"
-                className="h-full w-full object-cover"
+                width={p.width}
+                height={p.height}
+                className="h-auto w-full"
               />
               <button
                 onClick={() => deletePhoto(p.id)}
