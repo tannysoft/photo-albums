@@ -83,6 +83,7 @@ export const POST = handle(async (req) => {
     size: fullBuffer.length,
     width: meta.width,
     height: meta.height,
+    downloadCount: 0,
     createdAt: Date.now(),
   });
 

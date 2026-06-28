@@ -19,6 +19,7 @@ export interface Photo {
   size: number; // bytes (original)
   width?: number;
   height?: number;
+  downloadCount?: number; // times this photo has been downloaded
   createdAt: number;
 }
 

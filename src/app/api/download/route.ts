@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import archiver from "archiver";
 import { Readable } from "node:stream";
-import { getAlbumBySlug, getPhotos } from "@/lib/data";
+import { getAlbumBySlug, getPhotos, incrementDownloads } from "@/lib/data";
 import { getObjectStream, presignGet } from "@/lib/r2";
 import { handle } from "@/lib/apiRoute";
 import type { Photo } from "@/lib/types";
@@ -35,6 +35,9 @@ export const POST = handle(async (req) => {
   );
   if (!photos.length)
     return NextResponse.json({ error: "No valid photos" }, { status: 400 });
+
+  // Record the download(s) for admin analytics.
+  await incrementDownloads(photos.map((p) => p.id));
 
   if (photos.length === 1) {
     const url = await presignGet(photos[0].key, {

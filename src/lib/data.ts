@@ -1,5 +1,6 @@
 // Firestore data access (server-only) for albums and photos.
 import "server-only";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./firebaseAdmin";
 import type { Album, Photo } from "./types";
 
@@ -119,6 +120,18 @@ export async function addPhoto(photo: Omit<Photo, "id">): Promise<Photo> {
   const ref = await adminDb.collection(PHOTOS).add(photo);
   await bumpPhotoCount(photo.albumId, 1);
   return { id: ref.id, ...photo };
+}
+
+/** Atomically increment the download counter for the given photos. */
+export async function incrementDownloads(ids: string[]): Promise<void> {
+  if (!ids.length) return;
+  const batch = adminDb.batch();
+  for (const id of ids) {
+    batch.update(adminDb.collection(PHOTOS).doc(id), {
+      downloadCount: FieldValue.increment(1),
+    });
+  }
+  await batch.commit();
 }
 
 export async function deletePhoto(photo: Photo): Promise<void> {
