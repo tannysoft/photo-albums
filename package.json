@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "git push origin main",
+    "deploy:rollout": "firebase apphosting:rollouts:create photo-albums -b main -f --project photo-albums-46fae",
+    "backend:create": "firebase apphosting:backends:create --project photo-albums-46fae",
+    "backend:info": "firebase apphosting:backends:get photo-albums --project photo-albums-46fae",
+    "secrets:grant": "firebase apphosting:secrets:grantaccess FIREBASE_PRIVATE_KEY,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY --backend photo-albums --project photo-albums-46fae"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.726.0",

@@ -51,6 +51,24 @@ src/
 ให้กดสร้างตามลิงก์นั้น (collection `photos`: `albumId` Asc, `createdAt` Asc)
 หรือเพิ่มใน `firestore.indexes.json` เอง
 
+## Deploy (Firebase App Hosting)
+
+deploy บน Firebase App Hosting (รันบน Cloud Run — ไม่มีลิมิต body 4.5MB) ผ่าน npm scripts:
+
+```bash
+npm run backend:create   # ครั้งแรกเท่านั้น: สร้าง backend + เชื่อม GitHub (ต้องใช้ browser)
+npm run secrets:grant    # ให้สิทธิ์ service account ของ backend เข้าถึง 3 secrets
+npm run deploy           # deploy = push ขึ้น main → App Hosting auto-rollout
+npm run deploy:rollout   # สั่ง rollout ใหม่จาก main ทันที (ไม่ต้อง commit ใหม่)
+npm run backend:info     # ดูสถานะ/URL ของ backend
+```
+
+> backend ID และ project ตั้งไว้เป็น `photo-albums` / `photo-albums-46fae` ในสคริปต์
+> ถ้าใช้ชื่ออื่นตอน `backend:create` ให้แก้ค่าในสคริปต์ของ `package.json` ให้ตรง
+
+ค่า env ของ production อยู่ใน [apphosting.yaml](apphosting.yaml) (ค่า public) และ Cloud Secret Manager
+(`FIREBASE_PRIVATE_KEY`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) — ไฟล์ `.env` ใช้เฉพาะ local
+
 ## หมายเหตุการ deploy
 
 - API ที่ใช้ `sharp`/`archiver`/`firebase-admin` ต้องรันบน Node.js runtime (ตั้งไว้แล้วใน route)
