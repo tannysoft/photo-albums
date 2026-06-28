@@ -5,6 +5,30 @@ import type { Album, Photo } from "./types";
 
 const ALBUMS = "albums";
 const PHOTOS = "photos";
+const ADMINS = "admins";
+
+export interface AdminRecord {
+  email: string;
+  addedBy: string;
+  addedAt: number;
+}
+
+export async function listAdmins(): Promise<AdminRecord[]> {
+  const snap = await adminDb.collection(ADMINS).orderBy("addedAt", "asc").get();
+  return snap.docs.map((d) => d.data() as AdminRecord);
+}
+
+export async function addAdmin(email: string, addedBy: string): Promise<void> {
+  const e = email.toLowerCase();
+  await adminDb
+    .collection(ADMINS)
+    .doc(e)
+    .set({ email: e, addedBy, addedAt: Date.now() }, { merge: true });
+}
+
+export async function removeAdmin(email: string): Promise<void> {
+  await adminDb.collection(ADMINS).doc(email.toLowerCase()).delete();
+}
 
 export function slugify(input: string): string {
   const base = input

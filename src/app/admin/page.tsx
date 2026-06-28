@@ -72,6 +72,12 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-semibold">อัลบั้มทั้งหมด</h1>
         <div className="flex items-center gap-3 text-sm text-neutral-400">
           <span className="hidden sm:inline">{user.email}</span>
+          <Link
+            href="/admin/admins"
+            className="rounded-lg border border-neutral-800 px-3 py-1.5 transition hover:bg-neutral-900"
+          >
+            จัดการ Admin
+          </Link>
           <button
             onClick={logout}
             className="rounded-lg border border-neutral-800 px-3 py-1.5 transition hover:bg-neutral-900"

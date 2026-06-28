@@ -46,22 +46,35 @@ function lazy<T extends object>(factory: () => T): T {
 export const adminDb: Firestore = lazy(() => getFirestore(getAdminApp()));
 export const adminAuth: Auth = lazy(() => getAuth(getAdminApp()));
 
-/** Comma-separated allowlist of admin emails; empty = any authenticated user. */
-function allowedAdminEmails(): string[] {
+/**
+ * Owner admins from the ADMIN_EMAILS env var. These are permanent admins that
+ * cannot be removed from the dashboard (the bootstrap / lockout safeguard).
+ */
+export function ownerAdminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 }
 
+/** True if the email is an admin: an env owner, or listed in Firestore. */
+export async function isAdminEmail(email: string): Promise<boolean> {
+  const e = email.toLowerCase();
+  if (ownerAdminEmails().includes(e)) return true;
+  const doc = await adminDb.collection("admins").doc(e).get();
+  return doc.exists;
+}
+
 export interface AdminUser {
   uid: string;
-  email: string | undefined;
+  email: string;
+  isOwner: boolean;
 }
 
 /**
  * Verify the Bearer token from a request and confirm the user is an allowed
- * admin. Returns the user on success, or null if unauthenticated/unauthorized.
+ * admin (env owner or Firestore-managed admin). Returns the user on success,
+ * or null if unauthenticated/unauthorized.
  */
 export async function verifyAdmin(req: Request): Promise<AdminUser | null> {
   const header = req.headers.get("authorization") ?? "";
@@ -71,9 +84,10 @@ export async function verifyAdmin(req: Request): Promise<AdminUser | null> {
   try {
     const decoded = await adminAuth.verifyIdToken(match[1]);
     const email = decoded.email?.toLowerCase();
-    const allow = allowedAdminEmails();
-    if (allow.length && (!email || !allow.includes(email))) return null;
-    return { uid: decoded.uid, email: decoded.email };
+    if (!email) return null;
+    const isOwner = ownerAdminEmails().includes(email);
+    if (!isOwner && !(await isAdminEmail(email))) return null;
+    return { uid: decoded.uid, email, isOwner };
   } catch {
     return null;
   }
