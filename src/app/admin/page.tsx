@@ -73,6 +73,12 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 text-sm text-neutral-400">
           <span className="hidden sm:inline">{user.email}</span>
           <Link
+            href="/admin/stats"
+            className="rounded-lg border border-neutral-800 px-3 py-1.5 transition hover:bg-neutral-900"
+          >
+            สถิติ
+          </Link>
+          <Link
             href="/admin/admins"
             className="rounded-lg border border-neutral-800 px-3 py-1.5 transition hover:bg-neutral-900"
           >

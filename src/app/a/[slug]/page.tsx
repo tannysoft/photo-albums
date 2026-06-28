@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAlbumBySlug, listPhotos } from "@/lib/data";
+import { getAlbumBySlug, listPhotos, incrementAlbumView } from "@/lib/data";
 import { publicUrl } from "@/lib/r2";
 import type { PublicPhoto } from "@/lib/types";
 import Gallery from "./Gallery";
@@ -37,6 +37,7 @@ export default async function PublicAlbumPage({
   const album = await getAlbumBySlug(decodedSlug);
   if (!album) notFound();
 
+  await incrementAlbumView(album.id);
   const photos = await listPhotos(album.id);
   const publicPhotos: PublicPhoto[] = photos.map((p) => ({
     id: p.id,

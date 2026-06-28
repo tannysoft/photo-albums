@@ -5,6 +5,7 @@ export interface Album {
   description?: string;
   coverPhotoId?: string;
   photoCount: number;
+  viewCount?: number; // times the public album page has been opened
   createdAt: number; // epoch ms
   updatedAt: number;
 }

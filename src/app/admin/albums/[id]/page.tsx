@@ -142,7 +142,8 @@ export default function AlbumDetailPage() {
         <div>
           <h1 className="text-2xl font-semibold">{album.title}</h1>
           <p className="mt-1 text-sm text-neutral-500">
-            {photos.length} รูป · ดาวน์โหลดรวม{" "}
+            {photos.length} รูป · เข้าชม {album.viewCount ?? 0} ครั้ง ·
+            ดาวน์โหลดรวม{" "}
             {photos.reduce((sum, p) => sum + (p.downloadCount ?? 0), 0)} ครั้ง
           </p>
         </div>
