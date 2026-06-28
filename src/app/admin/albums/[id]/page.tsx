@@ -8,7 +8,7 @@ import { imgUrl } from "@/lib/imgUrl";
 import type { Album, Photo } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
-const ROW_HEIGHT = 220; // target row height (px) for the justified layout
+const ROW_HEIGHT = 160; // target row height (px); lower = more photos per row
 
 export default function AlbumDetailPage() {
   const { user, loading } = useAuth();

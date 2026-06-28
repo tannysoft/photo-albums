@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicPhoto } from "@/lib/types";
 
 const PAGE_SIZE = 36; // photos rendered per batch (infinite scroll)
-const ROW_HEIGHT = 220; // target row height (px) for the justified layout
+const ROW_HEIGHT = 160; // target row height (px); lower = more photos per row
 
 /** Aspect ratio (w/h) with a safe square fallback. */
 function aspectRatio(p: PublicPhoto): number {
