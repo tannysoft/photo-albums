@@ -18,7 +18,11 @@ export default function Gallery({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState(false);
   const [lightbox, setLightbox] = useState<PublicPhoto | null>(null);
-  const dragRef = useRef<{ mode: "add" | "remove" } | null>(null);
+  const dragRef = useRef<{ mode: "add" | "remove"; moved: boolean } | null>(
+    null
+  );
+  // Set when a drag-select happened, so the click that follows doesn't undo it.
+  const suppressClickRef = useRef(false);
 
   const allSelected = selected.size === photos.length && photos.length > 0;
 
@@ -62,24 +66,39 @@ export default function Gallery({
     setSelected(allSelected ? new Set() : new Set(photos.map((p) => p.id)));
   }
 
+  // Click / tap to select (works on both desktop and mobile).
   function onTileClick(photo: PublicPhoto) {
+    // Ignore the click synthesized at the end of a drag-select.
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     if (selectMode) toggle(photo.id);
     else setLightbox(photo);
   }
 
-  // Mouse drag-to-select (iPhone-style swipe selection on desktop).
+  // Optional mouse drag-to-select (iPhone-style swipe). A plain click is left
+  // to onTileClick; we only start dragging once the pointer actually moves.
   function onTilePointerDown(e: React.PointerEvent, photo: PublicPhoto) {
     if (!selectMode || e.pointerType !== "mouse") return;
-    const mode: "add" | "remove" = selected.has(photo.id) ? "remove" : "add";
-    dragRef.current = { mode };
-    applyTo(photo.id, mode);
+    suppressClickRef.current = false;
+    dragRef.current = {
+      mode: selected.has(photo.id) ? "remove" : "add",
+      moved: false,
+    };
   }
   function onGridPointerMove(e: React.PointerEvent) {
-    if (!dragRef.current) return;
+    const drag = dragRef.current;
+    if (!drag) return;
     const el = document.elementFromPoint(e.clientX, e.clientY);
-    const tile = el?.closest<HTMLElement>("[data-photo-id]");
-    const id = tile?.dataset.photoId;
-    if (id) applyTo(id, dragRef.current.mode);
+    const id = el?.closest<HTMLElement>("[data-photo-id]")?.dataset.photoId;
+    if (!id) return;
+    // First movement turns this into a drag — suppress the trailing click.
+    if (!drag.moved) {
+      drag.moved = true;
+      suppressClickRef.current = true;
+    }
+    applyTo(id, drag.mode);
   }
 
   async function download() {
