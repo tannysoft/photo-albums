@@ -6,13 +6,24 @@ import Gallery from "./Gallery";
 
 export const dynamic = "force-dynamic";
 
+// Route params with non-ASCII (e.g. Thai) characters may arrive percent-encoded
+// in some runtimes. Decoding is idempotent for our slugs (which never contain a
+// literal "%"), so this is safe whether or not the param was already decoded.
+function decodeSlug(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const album = await getAlbumBySlug(slug);
+  const album = await getAlbumBySlug(decodeSlug(slug));
   return { title: album ? `${album.title} — Photo Albums` : "Album" };
 }
 
@@ -22,7 +33,8 @@ export default async function PublicAlbumPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const album = await getAlbumBySlug(slug);
+  const decodedSlug = decodeSlug(slug);
+  const album = await getAlbumBySlug(decodedSlug);
   if (!album) notFound();
 
   const photos = await listPhotos(album.id);
@@ -37,7 +49,7 @@ export default async function PublicAlbumPage({
 
   return (
     <Gallery
-      slug={slug}
+      slug={decodedSlug}
       title={album.title}
       description={album.description}
       photos={publicPhotos}
