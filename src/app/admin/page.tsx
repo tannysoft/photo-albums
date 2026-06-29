@@ -38,6 +38,20 @@ export default function DashboardPage() {
     if (user) load();
   }, [user, load]);
 
+  // Refresh album counts when returning to this tab/page (e.g. after deleting
+  // photos in an album), so the photo counts stay up to date.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible" && user) load();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [user, load]);
+
   async function createAlbum(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
