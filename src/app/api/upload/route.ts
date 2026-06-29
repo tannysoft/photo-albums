@@ -11,6 +11,16 @@ export const maxDuration = 60;
 
 const THUMB_WIDTH = 600; // px — long edge for grid thumbnails
 
+/** Reject with a labelled error if a step takes too long (avoids hangs). */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`TIMEOUT at ${label} (${ms}ms)`)), ms)
+    ),
+  ]);
+}
+
 function extFor(contentType: string): string {
   if (contentType === "image/png") return "png";
   if (contentType === "image/webp") return "webp";
@@ -69,12 +79,17 @@ export const POST = handle(async (req) => {
   const key = `albums/${albumId}/${id}.${ext}`;
   const thumbKey = `albums/${albumId}/${id}_thumb.jpg`;
 
-  await Promise.all([
-    putObject(key, fullBuffer, contentType),
-    putObject(thumbKey, thumbBuffer, "image/jpeg"),
-  ]);
+  await withTimeout(
+    Promise.all([
+      putObject(key, fullBuffer, contentType),
+      putObject(thumbKey, thumbBuffer, "image/jpeg"),
+    ]),
+    40000,
+    "R2 putObject"
+  );
 
-  const photo = await addPhoto({
+  const photo = await withTimeout(
+    addPhoto({
     albumId,
     fileName: file.name || `${id}.${ext}`,
     key,
@@ -85,7 +100,10 @@ export const POST = handle(async (req) => {
     height: meta.height,
     downloadCount: 0,
     createdAt: Date.now(),
-  });
+    }),
+    15000,
+    "Firestore addPhoto"
+  );
 
   return NextResponse.json({ photo }, { status: 201 });
 });

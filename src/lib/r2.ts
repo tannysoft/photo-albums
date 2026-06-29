@@ -25,6 +25,12 @@ export const r2 = new S3Client({
     accessKeyId: accessKeyId ?? "",
     secretAccessKey: secretAccessKey ?? "",
   },
+  // Fail fast instead of hanging if R2 is unreachable.
+  maxAttempts: 3,
+  requestHandler: {
+    connectionTimeout: 6000,
+    requestTimeout: 30000,
+  },
 });
 
 export async function putObject(
